@@ -64,8 +64,11 @@ export default function JobApplicationForm() {
       <CardContent className="p-6">
         <form action="https://formsubmit.co/karim.kmal2003@gmail.com" method="POST" className="space-y-6" onSubmit={handleSubmit}>
           {/* FormSubmit configuration */}
-          <input type="hidden" name="_cc" value="agaber@ebny.com.eg" />
+          <input type="hidden" name="_cc" value="karim.kmal2003@gmail.com" />
           <input type="hidden" name="_subject" value="New Job Application Submission" />
+          <input type="hidden" name="_next" value="https://karimkory20.github.io/Form-APP/thank-you" />
+          <input type="hidden" name="_captcha" value="false" />
+          <input type="hidden" name="_template" value="box" />
 
           <div className="text-center space-y-4">
             <div className="flex justify-center mb-4">
@@ -288,7 +291,7 @@ export default function JobApplicationForm() {
           <div className="flex justify-center pt-6">
             <Button type="submit" className="w-full md:w-auto px-8">
               Submit Application / إرسال الطلب
-            </Button>
+          </Button>
           </div>
         </form>
 
