@@ -22,7 +22,7 @@ export default function JobApplicationForm() {
 
     // You could use a server action here to submit the form
     // or redirect to FormSubmit.co as in the original form
-    window.location.href = "https://formsubmit.co/agaber@ebny.com.eg"
+    window.location.href = "https://formsubmit.co/oelkhashab@ebny.com.eg"
   }
 
   return (
