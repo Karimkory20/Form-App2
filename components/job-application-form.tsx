@@ -49,6 +49,10 @@ export default function JobApplicationForm() {
 
   const handleConfirmSubmit = () => {
     setShowConfirmDialog(false)
+    const form = document.querySelector('form')
+    if (form) {
+      form.submit()
+    }
     toast({
       title: "Application Submitted",
       description: "Thank you for your application. We will review it and get back to you soon.",
