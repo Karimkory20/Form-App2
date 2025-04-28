@@ -9,9 +9,17 @@ export const metadata = {
   title: 'EBNY Job Application Form',
   description: 'Apply for jobs at EBNY Real Estate Development',
   icons: {
-    icon: '/ebny-logo.png',
-    shortcut: '/ebny-logo.png',
-    apple: '/ebny-logo.png',
+    icon: [
+      {
+        url: '/favicon.ico',
+        sizes: 'any',
+      },
+      {
+        url: '/icon.png',
+        type: 'image/png',
+        sizes: '32x32',
+      }
+    ],
   },
 }
 
