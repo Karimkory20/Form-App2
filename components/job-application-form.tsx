@@ -201,18 +201,7 @@ export default function JobApplicationForm() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="position">Position Applied For / الوظيفة المتقدم لها: *</Label>
-              <Select name="Position_Applied_For" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select position" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Software Engineer">Software Engineer</SelectItem>
-                  <SelectItem value="Project Manager">Project Manager</SelectItem>
-                  <SelectItem value="Sales Representative">Sales Representative</SelectItem>
-                  <SelectItem value="Marketing Specialist">Marketing Specialist</SelectItem>
-                  <SelectItem value="HR Manager">HR Manager</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input id="position" name="Position_Applied_For" required placeholder="Enter position" />
             </div>
 
             <div className="space-y-2">
