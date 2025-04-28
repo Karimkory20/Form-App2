@@ -66,7 +66,7 @@ export default function JobApplicationForm() {
           {/* FormSubmit configuration */}
           <input type="hidden" name="_cc" value="karim.kmal2003@gmail.com" />
           <input type="hidden" name="_subject" value="New Job Application Submission" />
-          <input type="hidden" name="_next" value="http://localhost:3000/thank-you" />
+          <input type="hidden" name="_next" value="https://v0-image-analysis-eight-jade-74.vercel.app/thank-you" />
           <input type="hidden" name="_captcha" value="false" />
           <input type="hidden" name="_template" value="box" />
 
