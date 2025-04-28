@@ -14,21 +14,15 @@ import { Button } from "@/components/ui/button"
 export default function JobApplicationForm() {
   const [formData, setFormData] = useState({})
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    // In a real implementation, you would send this data to your backend
-    // For now, we'll just log it to the console
-    console.log(formData)
-
-    // You could use a server action here to submit the form
-    // or redirect to FormSubmit.co as in the original form
-    window.location.href = "https://formsubmit.co/oelkhashab@ebny.com.eg"
+  const handleSubmit = (e: React.FormEvent) => {
+    // You can add any additional client-side logic here if needed
+    // The form will be submitted directly to FormSubmit
   }
 
   return (
     <Card className="max-w-4xl mx-auto shadow-lg">
       <CardContent className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action="https://formsubmit.co/hr@ebny.com.eg" method="POST" className="space-y-6">
           <div className="text-center space-y-4">
             <div className="flex justify-center mb-4">
               <Image
