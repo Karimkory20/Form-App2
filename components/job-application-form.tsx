@@ -2,27 +2,63 @@
 
 import type React from "react"
 import Image from "next/image"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function JobApplicationForm() {
   const [formData, setFormData] = useState({})
+  const [progress, setProgress] = useState(0)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const { toast } = useToast()
+
+  const calculateProgress = () => {
+    const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]')
+    const filledFields = Array.from(requiredFields).filter(field => field.value.trim() !== '')
+    const progressPercentage = (filledFields.length / requiredFields.length) * 100
+    setProgress(Math.round(progressPercentage))
+  }
+
+  useEffect(() => {
+    const form = document.querySelector('form')
+    if (form) {
+      form.addEventListener('change', calculateProgress)
+      form.addEventListener('input', calculateProgress)
+    }
+    return () => {
+      if (form) {
+        form.removeEventListener('change', calculateProgress)
+        form.removeEventListener('input', calculateProgress)
+      }
+    }
+  }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
-    // You can add any additional client-side logic here if needed
-    // The form will be submitted directly to FormSubmit
+    e.preventDefault()
+    setShowConfirmDialog(true)
+  }
+
+  const handleConfirmSubmit = () => {
+    setShowConfirmDialog(false)
+    toast({
+      title: "Application Submitted",
+      description: "Thank you for your application. We will review it and get back to you soon.",
+    })
   }
 
   return (
     <Card className="max-w-4xl mx-auto shadow-lg">
       <CardContent className="p-6">
-        <form action="https://formsubmit.co/mnader@ebny.com.eg" method="POST" className="space-y-6">
+        <form action="https://formsubmit.co/mnader@ebny.com.eg" method="POST" className="space-y-6" onSubmit={handleSubmit}>
           {/* FormSubmit configuration */}
           <input type="hidden" name="_cc" value="agaber@ebny.com.eg" />
           <input type="hidden" name="_subject" value="New Job Application Submission" />
@@ -40,40 +76,57 @@ export default function JobApplicationForm() {
             </div>
             <h1 className="text-2xl font-bold">EBNY Job Application</h1>
             <p className="text-xl">استمارة التقديم للوظيفة</p>
+            
+            {/* Progress Bar */}
+            <div className="w-full max-w-md mx-auto space-y-2">
+              <Progress value={progress} className="h-2" />
+              <p className="text-sm text-muted-foreground text-center">
+                Form Completion: {progress}%
+              </p>
+            </div>
           </div>
 
           {/* Personal Data Section */}
           <SectionTitle title="Personal Data / البيانات الشخصية" />
 
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">Name / الاسم بالكامل:</Label>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Label htmlFor="name">Name / الاسم بالكامل: *</Label>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Please enter your full name as it appears on your ID</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Input id="name" name="Name" required />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="address">Address / العنوان:</Label>
-              <Input id="address" name="Address" />
+            <div className="space-y-2">
+              <Label htmlFor="address">Address / العنوان: *</Label>
+              <Input id="address" name="Address" required />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="nationalId">National ID No. / الرقم القومي:</Label>
-              <Input id="nationalId" name="National_ID" />
+            <div className="space-y-2">
+              <Label htmlFor="nationalId">National ID No. / الرقم القومي: *</Label>
+              <Input id="nationalId" name="National_ID" required pattern="[0-9]{14}" title="Please enter a valid 14-digit National ID" />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="dob">Date of Birth / تاريخ الميلاد:</Label>
-              <Input id="dob" name="Date_of_Birth" type="date" />
+            <div className="space-y-2">
+              <Label htmlFor="dob">Date of Birth / تاريخ الميلاد: *</Label>
+              <Input id="dob" name="Date_of_Birth" type="date" required />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="mobile">Mobile Number / رقم المحمول:</Label>
-              <Input id="mobile" name="Mobile_Number" type="tel" />
+            <div className="space-y-2">
+              <Label htmlFor="mobile">Mobile Number / رقم المحمول: *</Label>
+              <Input id="mobile" name="Mobile_Number" type="tel" required pattern="[0-9]{11}" title="Please enter a valid 11-digit mobile number" />
             </div>
 
-            <div className="grid gap-2">
-              <Label>Gender / النوع:</Label>
-              <RadioGroup defaultValue="Male" name="Gender" className="flex gap-4">
+            <div className="space-y-2">
+              <Label>Gender / النوع: *</Label>
+              <RadioGroup defaultValue="Male" name="Gender" className="flex gap-4" required>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="Male" id="male" />
                   <Label htmlFor="male">Male / ذكر</Label>
@@ -85,7 +138,7 @@ export default function JobApplicationForm() {
               </RadioGroup>
             </div>
 
-            <div className="grid gap-2">
+            <div className="space-y-2">
               <Label>Marital Status / الحالة الاجتماعية:</Label>
               <RadioGroup defaultValue="Single" name="Marital_Status" className="flex gap-4">
                 <div className="flex items-center space-x-2">
@@ -99,7 +152,7 @@ export default function JobApplicationForm() {
               </RadioGroup>
             </div>
 
-            <div className="grid gap-2">
+            <div className="space-y-2">
               <Label>Military Status / الموقف التجنيدي:</Label>
               <RadioGroup defaultValue="Completed" name="Military_Status" className="flex flex-wrap gap-4">
                 <div className="flex items-center space-x-2">
@@ -117,7 +170,7 @@ export default function JobApplicationForm() {
               </RadioGroup>
             </div>
 
-            <div className="grid gap-2">
+            <div className="space-y-2">
               <Label>Do you have relatives working at EBNY Real Estate? / هل لديك أقارب يعملون في إبني؟</Label>
               <RadioGroup defaultValue="No" name="Relatives_at_EBNY" className="flex gap-4">
                 <div className="flex items-center space-x-2">
@@ -131,12 +184,12 @@ export default function JobApplicationForm() {
               </RadioGroup>
             </div>
 
-            <div className="grid gap-2">
+            <div className="space-y-2">
               <Label htmlFor="relativesNames">If yes, their names / في حال نعم، اذكر أسمائهم:</Label>
               <Input id="relativesNames" name="Relatives_Names" />
             </div>
 
-            <div className="grid gap-2">
+            <div className="space-y-2">
               <Label htmlFor="relation">Relation / صلة القرابة:</Label>
               <Input id="relation" name="Relation" />
             </div>
@@ -145,245 +198,122 @@ export default function JobApplicationForm() {
           {/* Employment Data Section */}
           <SectionTitle title="Employment Data / بيانات التعيين" />
 
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="position">Position Applied For / الوظيفة المتقدم لها:</Label>
-              <Input id="position" name="Position_Applied_For" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="position">Position Applied For / الوظيفة المتقدم لها: *</Label>
+              <Select name="Position_Applied_For" required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select position" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Software Engineer">Software Engineer</SelectItem>
+                  <SelectItem value="Project Manager">Project Manager</SelectItem>
+                  <SelectItem value="Sales Representative">Sales Representative</SelectItem>
+                  <SelectItem value="Marketing Specialist">Marketing Specialist</SelectItem>
+                  <SelectItem value="HR Manager">HR Manager</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="grid gap-2">
-              <Label>Are you currently employed? / هل تعمل حاليا؟</Label>
-              <RadioGroup defaultValue="No" name="Currently_Employed" className="flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Yes" id="employed-yes" />
-                  <Label htmlFor="employed-yes">Yes / نعم</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="No" id="employed-no" />
-                  <Label htmlFor="employed-no">No / لا</Label>
-                </div>
-              </RadioGroup>
+            <div className="space-y-2">
+              <Label htmlFor="expectedSalary">Expected Salary / المرتب المتوقع: *</Label>
+              <Input id="expectedSalary" name="Expected_Salary" type="number" required min="0" />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="currentSalary">If yes, your current salary / اذا نعم، اذكر مرتبك الحالي:</Label>
-              <Input id="currentSalary" name="Current_Salary" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="expectedSalary">Expected Salary / المرتب المتوقع:</Label>
-              <Input id="expectedSalary" name="Expected_Salary" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="availability">Availability to Join / تاريخ الاستعداد للانضمام:</Label>
-              <Input id="availability" name="Availability_to_Join" type="date" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label>Have you ever been employed at EBNY Real Estate before? / هل عملت سابقا بابني؟</Label>
-              <RadioGroup defaultValue="No" name="Previous_Employment_at_EBNY" className="flex gap-4">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="Yes" id="previous-yes" />
-                  <Label htmlFor="previous-yes">Yes / نعم</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="No" id="previous-no" />
-                  <Label htmlFor="previous-no">No / لا</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="previousPosition">If yes, what position? / في حال نعم، اذكر اخر وظيفة:</Label>
-              <Input id="previousPosition" name="Previous_Position" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="reasonsForLeaving">Reasons for Leaving / سبب ترك العمل:</Label>
-              <Input id="reasonsForLeaving" name="Reasons_for_Leaving" />
+            <div className="space-y-2">
+              <Label htmlFor="availability">Availability to Join / تاريخ الاستعداد للانضمام: *</Label>
+              <Input id="availability" name="Availability_to_Join" type="date" required />
             </div>
           </div>
 
           {/* Education Section */}
           <SectionTitle title="Education / التعليم" />
 
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="certificate">Certificate / الشهادة:</Label>
-              <Input id="certificate" name="Certificate" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="certificate">Certificate / الشهادة: *</Label>
+              <Input id="certificate" name="Certificate" required />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="university">University / الجامعة:</Label>
-              <Input id="university" name="University" />
+            <div className="space-y-2">
+              <Label htmlFor="university">University / الجامعة: *</Label>
+              <Input id="university" name="University" required />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="graduationYear">Graduation Year / سنة التخرج:</Label>
-              <Input id="graduationYear" name="Graduation_Year" />
+            <div className="space-y-2">
+              <Label htmlFor="graduationYear">Graduation Year / سنة التخرج: *</Label>
+              <Input id="graduationYear" name="Graduation_Year" type="number" required min="1950" max={new Date().getFullYear()} />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="grade">Grade / التقدير:</Label>
-              <Input id="grade" name="Grade" />
+            <div className="space-y-2">
+              <Label htmlFor="grade">Grade / التقدير: *</Label>
+              <Select name="Grade" required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select grade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Excellent">Excellent / ممتاز</SelectItem>
+                  <SelectItem value="Very Good">Very Good / جيد جدا</SelectItem>
+                  <SelectItem value="Good">Good / جيد</SelectItem>
+                  <SelectItem value="Acceptable">Acceptable / مقبول</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           {/* Professional Experience Section */}
           <SectionTitle title="Professional Experience / الخبرة المهنية" />
 
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="companyName">Company Name / اسم الشركة:</Label>
-              <Input id="companyName" name="Company_Name" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Company Name / اسم الشركة: *</Label>
+              <Input id="companyName" name="Company_Name" required />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="jobPosition">Position / الوظيفة:</Label>
-              <Input id="jobPosition" name="Position" />
+            <div className="space-y-2">
+              <Label htmlFor="jobPosition">Position / الوظيفة: *</Label>
+              <Input id="jobPosition" name="Position" required />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="startingDate">Starting Date / تاريخ بداية العمل:</Label>
-              <Input id="startingDate" name="Starting_Date" type="date" />
+            <div className="space-y-2">
+              <Label htmlFor="startingDate">Starting Date / تاريخ بداية العمل: *</Label>
+              <Input id="startingDate" name="Starting_Date" type="date" required />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="endingDate">Ending Date / تاريخ نهاية العمل:</Label>
-              <Input id="endingDate" name="Ending_Date" type="date" />
+            <div className="space-y-2">
+              <Label htmlFor="endingDate">Ending Date / تاريخ نهاية العمل: *</Label>
+              <Input id="endingDate" name="Ending_Date" type="date" required />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="experienceReasonsForLeaving">Reasons for Leaving / أسباب ترك العمل:</Label>
-              <Input id="experienceReasonsForLeaving" name="Experience_Reasons_for_Leaving" />
-            </div>
-          </div>
-
-          {/* Training Courses Section */}
-          <SectionTitle title="Training Courses / الدورات التدريبية" />
-
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="courseName">Course Name / اسم الدورة:</Label>
-              <Input id="courseName" name="Course_Name" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="institution">Institution / مركز التدريب:</Label>
-              <Input id="institution" name="Institution" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="courseStartingDate">Starting Date / تاريخ بداية الدورة:</Label>
-              <Input id="courseStartingDate" name="Course_Starting_Date" type="date" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="courseEndingDate">Ending Date / تاريخ نهاية الدورة:</Label>
-              <Input id="courseEndingDate" name="Course_Ending_Date" type="date" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="totalHours">Total Hours / عدد الساعات:</Label>
-              <Input id="totalHours" name="Total_Hours" />
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="experienceReasonsForLeaving">Reasons for Leaving / أسباب ترك العمل: *</Label>
+              <Textarea id="experienceReasonsForLeaving" name="Experience_Reasons_for_Leaving" required />
             </div>
           </div>
 
-          {/* Languages Section */}
-          <SectionTitle title="Languages / اللغات" />
-
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="language1">Language 1:</Label>
-              <Input id="language1" name="Language_1" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="language1Level">Proficiency Level:</Label>
-              <Select name="Language_1_Level">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select proficiency level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Excellent">Excellent / ممتاز</SelectItem>
-                  <SelectItem value="Very Good">Very Good / جيد جدا</SelectItem>
-                  <SelectItem value="Good">Good / جيد</SelectItem>
-                  <SelectItem value="Fair">Fair / مقبول</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="language2">Language 2:</Label>
-              <Input id="language2" name="Language_2" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="language2Level">Proficiency Level:</Label>
-              <Select name="Language_2_Level">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select proficiency level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Excellent">Excellent / ممتاز</SelectItem>
-                  <SelectItem value="Very Good">Very Good / جيد جدا</SelectItem>
-                  <SelectItem value="Good">Good / جيد</SelectItem>
-                  <SelectItem value="Fair">Fair / مقبول</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Submit Button */}
+          <div className="flex justify-center pt-6">
+            <Button type="submit" className="w-full md:w-auto px-8">
+              Submit Application / إرسال الطلب
+            </Button>
           </div>
-
-          {/* Computer Skills Section */}
-          <SectionTitle title="Computer Skills / مهارات الحاسب الالي" />
-
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="skill1">Program/Skill 1:</Label>
-              <Input id="skill1" name="Skill_1" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="skill1Level">Proficiency Level:</Label>
-              <Select name="Skill_1_Level">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select proficiency level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Excellent">Excellent / ممتاز</SelectItem>
-                  <SelectItem value="Very Good">Very Good / جيد جدا</SelectItem>
-                  <SelectItem value="Good">Good / جيد</SelectItem>
-                  <SelectItem value="Fair">Fair / مقبول</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="skill2">Program/Skill 2:</Label>
-              <Input id="skill2" name="Skill_2" />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="skill2Level">Proficiency Level:</Label>
-              <Select name="Skill_2_Level">
-                <SelectTrigger>
-                  <SelectValue placeholder="Select proficiency level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Excellent">Excellent / ممتاز</SelectItem>
-                  <SelectItem value="Very Good">Very Good / جيد جدا</SelectItem>
-                  <SelectItem value="Good">Good / جيد</SelectItem>
-                  <SelectItem value="Fair">Fair / مقبول</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-lg py-6">
-            Submit / ارسال
-          </Button>
         </form>
+
+        {/* Confirmation Dialog */}
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Submission</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to submit your application? Please review all information before proceeding.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmSubmit}>Submit</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   )
@@ -391,7 +321,7 @@ export default function JobApplicationForm() {
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <div className="py-2">
+    <div className="py-4">
       <h2 className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium">{title}</h2>
     </div>
   )
