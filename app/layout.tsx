@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Job Application Form - EBNY Real Estate",
+  title: "EBNY Job Application",
   description: "Apply for a position at EBNY Real Estate",
     generator: 'v0.dev'
 }
