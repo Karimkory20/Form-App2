@@ -22,9 +22,9 @@ export default function JobApplicationForm() {
   return (
     <Card className="max-w-4xl mx-auto shadow-lg">
       <CardContent className="p-6">
-        <form action="https://formsubmit.co/agaber@ebny.com.eg" method="POST" className="space-y-6">
+        <form action="https://formsubmit.co/mnader@ebny.com.eg" method="POST" className="space-y-6">
           {/* FormSubmit configuration */}
-          <input type="hidden" name="_cc" value="mnader@ebny.com.eg" />
+          <input type="hidden" name="_cc" value="agaber@ebny.com.eg" />
           <input type="hidden" name="_subject" value="New Job Application Submission" />
 
           <div className="text-center space-y-4">
