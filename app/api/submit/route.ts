@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Resend } from 'resend'
+
+// Initialize Resend with API key from environment variable
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,31 +44,35 @@ export async function POST(request: NextRequest) {
     // Log the submission (for testing/debugging)
     console.log('Form submission received:', JSON.stringify(data, null, 2))
 
-    // TODO: Add email sending logic here
-    // You can use services like:
-    // - Resend (https://resend.com)
-    // - SendGrid
-    // - Nodemailer with SMTP
-    // - Or any other email service
-
-    // For now, we'll just return success
-    // In production, you would send an email here
+    // Format email content
     const emailBody = formatEmailBody(data)
-    
-    // Simulate email sending (replace with actual email service)
-    // await sendEmail({
-    //   to: 'kkamal@ebny.com.eg',
-    //   cc: 'kkamal@ebny.com.eg',
-    //   subject: 'New Job Application Submission',
-    //   body: emailBody
-    // })
+    const emailHtml = formatEmailHtml(data)
+
+    // Send email using Resend
+    const recipientEmail = process.env.RECIPIENT_EMAIL || 'kkamal@ebny.com.eg'
+    const ccEmail = process.env.CC_EMAIL || recipientEmail
+
+    try {
+      const emailResult = await resend.emails.send({
+        from: process.env.FROM_EMAIL || 'onboarding@resend.dev', // Update this with your verified domain
+        to: [recipientEmail],
+        cc: ccEmail !== recipientEmail ? [ccEmail] : undefined,
+        subject: 'New Job Application Submission - EBNY',
+        text: emailBody,
+        html: emailHtml,
+      })
+
+      console.log('Email sent successfully:', emailResult)
+    } catch (emailError) {
+      console.error('Error sending email:', emailError)
+      // Don't fail the request if email fails, but log it
+      // You might want to handle this differently based on your needs
+    }
 
     return NextResponse.json(
       { 
         success: true, 
-        message: 'Application submitted successfully!',
-        // Include the data for testing (remove in production)
-        data: data
+        message: 'Application submitted successfully!'
       },
       { status: 200 }
     )
@@ -148,5 +156,119 @@ function formatEmailBody(data: Record<string, any>): string {
   }
 
   return body
+}
+
+function formatEmailHtml(data: Record<string, any>): string {
+  let html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Job Application</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
+      <div style="background-color: #1e40af; color: white; padding: 20px; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0;">New Job Application Submission</h1>
+        <p style="margin: 5px 0 0 0; opacity: 0.9;">EBNY Real Estate Development</p>
+      </div>
+      
+      <div style="background-color: #f9fafb; padding: 20px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+        
+        <h2 style="color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-top: 0;">Personal Data</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+          <tr><td style="padding: 8px; font-weight: bold; width: 200px;">Name:</td><td style="padding: 8px;">${escapeHtml(data.Name || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Email:</td><td style="padding: 8px;">${escapeHtml(data.Email_Address || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Address:</td><td style="padding: 8px;">${escapeHtml(data.Address || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">National ID:</td><td style="padding: 8px;">${escapeHtml(data.National_ID || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Date of Birth:</td><td style="padding: 8px;">${escapeHtml(data.Date_of_Birth || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Mobile:</td><td style="padding: 8px;">${escapeHtml(data.Mobile_Number || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Gender:</td><td style="padding: 8px;">${escapeHtml(data.Gender || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Marital Status:</td><td style="padding: 8px;">${escapeHtml(data.Marital_Status || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Military Status:</td><td style="padding: 8px;">${escapeHtml(data.Military_Status || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Relatives at EBNY:</td><td style="padding: 8px;">${escapeHtml(data.Relatives_at_EBNY || 'N/A')}</td></tr>
+          ${data.Relatives_Names ? `<tr><td style="padding: 8px; font-weight: bold;">Relatives Names:</td><td style="padding: 8px;">${escapeHtml(data.Relatives_Names)}</td></tr>` : ''}
+          ${data.Relation ? `<tr><td style="padding: 8px; font-weight: bold;">Relation:</td><td style="padding: 8px;">${escapeHtml(data.Relation)}</td></tr>` : ''}
+        </table>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px;">Employment Data</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+          <tr><td style="padding: 8px; font-weight: bold; width: 200px;">Position Applied For:</td><td style="padding: 8px;">${escapeHtml(data.Position_Applied_For || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Expected Salary:</td><td style="padding: 8px;">${escapeHtml(data.Expected_Salary || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Availability to Join:</td><td style="padding: 8px;">${escapeHtml(data.Availability_to_Join || 'N/A')}</td></tr>
+        </table>
+
+        <h2 style="color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px;">Education</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+          <tr><td style="padding: 8px; font-weight: bold; width: 200px;">Certificate:</td><td style="padding: 8px;">${escapeHtml(data.Certificate || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">University:</td><td style="padding: 8px;">${escapeHtml(data.University || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Graduation Year:</td><td style="padding: 8px;">${escapeHtml(data.Graduation_Year || 'N/A')}</td></tr>
+          <tr><td style="padding: 8px; font-weight: bold;">Grade:</td><td style="padding: 8px;">${escapeHtml(data.Grade || 'N/A')}</td></tr>
+        </table>
+  `
+
+  // Professional Experience
+  if (data.Experience && Array.isArray(data.Experience)) {
+    html += `
+        <h2 style="color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px;">Professional Experience</h2>
+    `
+    data.Experience.forEach((exp: any, index: number) => {
+      html += `
+        <div style="background-color: white; padding: 15px; margin-bottom: 15px; border-left: 4px solid #1e40af; border-radius: 4px;">
+          <h3 style="margin-top: 0; color: #1e40af;">Experience #${index + 1}</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px; font-weight: bold; width: 200px;">Company:</td><td style="padding: 8px;">${escapeHtml(exp.CompanyName || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Position:</td><td style="padding: 8px;">${escapeHtml(exp.Position || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Starting Date:</td><td style="padding: 8px;">${escapeHtml(exp.StartingDate || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Ending Date:</td><td style="padding: 8px;">${escapeHtml(exp.EndingDate || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Reasons for Leaving:</td><td style="padding: 8px;">${escapeHtml(exp.ReasonsForLeaving || 'N/A')}</td></tr>
+          </table>
+        </div>
+      `
+    })
+  }
+
+  // Training Courses
+  if (data.Course && Array.isArray(data.Course)) {
+    html += `
+        <h2 style="color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-top: 30px;">Training Courses</h2>
+    `
+    data.Course.forEach((course: any, index: number) => {
+      html += `
+        <div style="background-color: white; padding: 15px; margin-bottom: 15px; border-left: 4px solid #1e40af; border-radius: 4px;">
+          <h3 style="margin-top: 0; color: #1e40af;">Course #${index + 1}</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px; font-weight: bold; width: 200px;">Course Name:</td><td style="padding: 8px;">${escapeHtml(course.CourseName || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Institution:</td><td style="padding: 8px;">${escapeHtml(course.Institution || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Starting Date:</td><td style="padding: 8px;">${escapeHtml(course.StartingDate || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Ending Date:</td><td style="padding: 8px;">${escapeHtml(course.EndingDate || 'N/A')}</td></tr>
+            <tr><td style="padding: 8px; font-weight: bold;">Total Hours:</td><td style="padding: 8px;">${escapeHtml(course.TotalHours || 'N/A')}</td></tr>
+          </table>
+        </div>
+      `
+    })
+  }
+
+  html += `
+      </div>
+      <div style="margin-top: 20px; padding: 15px; background-color: #f3f4f6; border-radius: 8px; text-align: center; color: #6b7280; font-size: 12px;">
+        <p style="margin: 0;">This email was automatically generated from the EBNY Job Application Form</p>
+      </div>
+    </body>
+    </html>
+  `
+
+  return html
+}
+
+function escapeHtml(text: string): string {
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;',
+  }
+  return text.replace(/[&<>"']/g, (m) => map[m])
 }
 
