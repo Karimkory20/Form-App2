@@ -235,7 +235,7 @@ export default function JobApplicationForm() {
       <CardContent className="p-6">
         <form action="https://formsubmit.co/kkamal@ebny.com.eg" method="POST" className="space-y-6" onSubmit={handleSubmit}>
           {/* FormSubmit configuration */}
-          <input type="hidden" name="_cc" value="kkamal@ebny.com.eg" />
+          <input type="hidden" name="_cc" value="karim.kmal2003@gmail.com" />
           <input type="hidden" name="_subject" value="New Job Application Submission" />
           <input type="hidden" name="_next" value="/thank-you" />
           <input type="hidden" name="_captcha" value="false" />
