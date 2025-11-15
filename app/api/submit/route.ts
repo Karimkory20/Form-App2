@@ -53,8 +53,14 @@ export async function POST(request: NextRequest) {
     const ccEmail = process.env.CC_EMAIL || recipientEmail
 
     try {
+      // Use a properly formatted FROM email
+      // Resend requires either:
+      // 1. A verified domain email (e.g., noreply@yourdomain.com)
+      // 2. Or the format: "Name <email@domain.com>"
+      const fromEmail = process.env.FROM_EMAIL || 'EBNY <onboarding@resend.dev>'
+      
       const emailResult = await resend.emails.send({
-        from: process.env.FROM_EMAIL || 'onboarding@resend.dev', // Update this with your verified domain
+        from: fromEmail,
         to: [recipientEmail],
         cc: ccEmail !== recipientEmail ? [ccEmail] : undefined,
         subject: 'New Job Application Submission - EBNY',
