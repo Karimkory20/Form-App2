@@ -153,11 +153,15 @@ export default function JobApplicationForm() {
   }])
   const [progress, setProgress] = useState(0)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
   const calculateProgress = () => {
     const requiredFields = document.querySelectorAll('input[required], select[required], textarea[required]')
-    const filledFields = Array.from(requiredFields).filter((field: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) => field.value.trim() !== '')
+    const filledFields = Array.from(requiredFields).filter((field) => {
+      const input = field as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      return input.value.trim() !== ''
+    })
     const progressPercentage = (filledFields.length / requiredFields.length) * 100
     setProgress(Math.round(progressPercentage))
   }
@@ -218,28 +222,53 @@ export default function JobApplicationForm() {
     setShowConfirmDialog(true)
   }
 
-  const handleConfirmSubmit = () => {
+  const handleConfirmSubmit = async () => {
     setShowConfirmDialog(false)
-    const form = document.querySelector('form')
-    if (form) {
-      form.submit()
+    setIsSubmitting(true)
+    
+    try {
+      const form = document.querySelector('form') as HTMLFormElement
+      if (!form) {
+        throw new Error('Form not found')
+      }
+
+      const formData = new FormData(form)
+      
+      const response = await fetch('/api/submit', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        toast({
+          title: "Application Submitted",
+          description: "Thank you for your application. We will review it and get back to you soon.",
+        })
+        // Redirect to thank-you page after a short delay
+        setTimeout(() => {
+          window.location.href = '/thank-you'
+        }, 1000)
+      } else {
+        throw new Error(result.message || 'Failed to submit application')
+      }
+    } catch (error) {
+      console.error('Submission error:', error)
+      toast({
+        title: "Submission Error",
+        description: error instanceof Error ? error.message : "Failed to submit application. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsSubmitting(false)
     }
-    toast({
-      title: "Application Submitted",
-      description: "Thank you for your application. We will review it and get back to you soon.",
-    })
   }
 
   return (
     <Card className="max-w-4xl mx-auto shadow-lg">
       <CardContent className="p-6">
-        <form action="https://formsubmit.co/kkamal@ebny.com.eg" method="POST" className="space-y-6" onSubmit={handleSubmit}>
-          {/* FormSubmit configuration */}
-          <input type="hidden" name="_cc" value="karim.kmal2003@gmail.com" />
-          <input type="hidden" name="_subject" value="New Job Application Submission" />
-          <input type="hidden" name="_next" value="/thank-you" />
-          <input type="hidden" name="_captcha" value="false" />
-          <input type="hidden" name="_template" value="box" />
+        <form className="space-y-6" onSubmit={handleSubmit}>
 
           <div className="text-center space-y-4">
             <div className="flex justify-center mb-4">
@@ -475,8 +504,8 @@ export default function JobApplicationForm() {
 
           {/* Submit Button */}
           <div className="flex justify-center pt-6">
-            <Button type="submit" className="w-full md:w-auto px-8">
-              Submit Application / إرسال الطلب
+            <Button type="submit" className="w-full md:w-auto px-8" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit Application / إرسال الطلب"}
           </Button>
           </div>
         </form>
@@ -491,8 +520,10 @@ export default function JobApplicationForm() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmSubmit}>Submit</AlertDialogAction>
+              <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmSubmit} disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
