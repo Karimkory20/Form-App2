@@ -151,7 +151,6 @@ export default function JobApplicationForm() {
   const [courses, setCourses] = useState<Course[]>([{
     id: Date.now() + 1, courseName: '', institution: '', startingDate: '', endingDate: '', totalHours: ''
   }])
-
   const [progress, setProgress] = useState(0)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
   const { toast } = useToast()
@@ -473,7 +472,6 @@ export default function JobApplicationForm() {
               </Button>
             </div>
           </div>
-
 
           {/* Submit Button */}
           <div className="flex justify-center pt-6">
