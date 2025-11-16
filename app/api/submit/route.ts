@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       formspreeData.append('_replyto', data.Email_Address || recipientEmail)
 
       // Send to Formspree
-      const formspreeResponse = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      const formspreeResponse = await fetch(`https://formspree.io/f/mnnlgqga`, {
         method: 'POST',
         body: formspreeData,
       })
